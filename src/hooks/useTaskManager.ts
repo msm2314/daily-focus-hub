@@ -185,6 +185,28 @@ export function useTaskManager() {
   const allDoneToday = totalCount > 0 && completedCount === totalCount;
   const todayAlreadyRecorded = streakData.last_completed_date === todayStr;
 
+  const fetchHistory = useCallback(async () => {
+    const { data: historyData } = await supabase
+      .from("daily_completions")
+      .select("completed_date, task_id, tasks(title)")
+      .order("completed_date", { ascending: false })
+      .limit(100);
+
+    if (historyData) {
+      const grouped: Record<string, string[]> = {};
+      for (const row of historyData) {
+        const date = row.completed_date;
+        const taskTitle = (row.tasks as any)?.title || "Unknown";
+        if (!grouped[date]) grouped[date] = [];
+        grouped[date].push(taskTitle);
+      }
+      const sorted = Object.entries(grouped)
+        .map(([date, t]) => ({ date, tasks: t }))
+        .sort((a, b) => b.date.localeCompare(a.date));
+      setHistory(sorted);
+    }
+  }, []);
+
   const completeDayAndUpdateStreak = useCallback(async () => {
     if (!allDoneToday || todayAlreadyRecorded) return;
 
@@ -216,8 +238,11 @@ export function useTaskManager() {
       last_completed_date: todayStr,
     });
 
+    // Refresh history to show today's completed day
+    await fetchHistory();
+
     toast.success(`Streak updated to ${newStreak}! 🔥`);
-  }, [allDoneToday, todayAlreadyRecorded, streakData, todayStr]);
+  }, [allDoneToday, todayAlreadyRecorded, streakData, todayStr, fetchHistory]);
 
   return {
     tasks,
