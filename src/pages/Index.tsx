@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Zap } from "lucide-react";
+import { Zap, Loader2 } from "lucide-react";
 import { useTaskManager } from "@/hooks/useTaskManager";
 import { StreakCounter } from "@/components/StreakCounter";
 import { ProgressRing } from "@/components/ProgressRing";
@@ -13,6 +13,7 @@ const Index = () => {
     tasks,
     history,
     streakData,
+    todayCompletedIds,
     addTask,
     removeTask,
     toggleTask,
@@ -21,7 +22,16 @@ const Index = () => {
     allDoneToday,
     todayAlreadyRecorded,
     completeDayAndUpdateStreak,
+    loading,
   } = useTaskManager();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 size={32} className="animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-background overflow-hidden">
@@ -52,7 +62,7 @@ const Index = () => {
             Streak<span className="text-neon">Hub</span>
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Complete all tasks daily. Build your streak. Stay consistent.
+            Add tasks once. Mark them daily. Build your streak.
           </p>
         </motion.header>
 
@@ -64,8 +74,8 @@ const Index = () => {
           className="mb-8 glass rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-around gap-6"
         >
           <StreakCounter
-            currentStreak={streakData.currentStreak}
-            bestStreak={streakData.bestStreak}
+            currentStreak={streakData.current_streak}
+            bestStreak={streakData.best_streak}
           />
           <ProgressRing completed={completedCount} total={totalCount} />
         </motion.section>
@@ -88,12 +98,12 @@ const Index = () => {
           className="mb-10"
         >
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Today's Tasks
+            Today's Tasks — tap to mark done
           </h2>
           {tasks.length === 0 ? (
             <div className="glass rounded-xl p-8 text-center">
               <p className="text-sm text-muted-foreground">
-                No tasks yet. Add some tasks to get started!
+                No tasks yet. Add your daily tasks above — they'll persist forever!
               </p>
             </div>
           ) : (
@@ -103,6 +113,7 @@ const Index = () => {
                   <TaskItem
                     key={task.id}
                     task={task}
+                    completed={todayCompletedIds.has(task.id)}
                     onToggle={toggleTask}
                     onRemove={removeTask}
                   />
@@ -117,7 +128,7 @@ const Index = () => {
               className="mt-4 rounded-xl bg-success/10 border border-success/20 p-4 text-center"
             >
               <p className="text-sm font-medium text-success">
-                ✓ Today is done! Your streak is at {streakData.currentStreak} 🔥
+                ✓ Today is done! Your streak is at {streakData.current_streak} 🔥
               </p>
             </motion.div>
           )}

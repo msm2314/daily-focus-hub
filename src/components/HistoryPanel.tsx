@@ -1,17 +1,14 @@
 import { motion } from "framer-motion";
-import { CalendarCheck } from "lucide-react";
-import type { DayRecord } from "@/hooks/useTaskManager";
 
 interface HistoryPanelProps {
-  history: DayRecord[];
+  history: { date: string; tasks: string[] }[];
 }
 
 export function HistoryPanel({ history }: HistoryPanelProps) {
   if (history.length === 0) {
     return (
       <div className="glass rounded-xl p-6 text-center">
-        <CalendarCheck size={32} className="mx-auto text-muted-foreground" />
-        <p className="mt-2 text-sm text-muted-foreground">No completed days yet. Start your streak!</p>
+        <p className="text-sm text-muted-foreground">No completed days yet. Start your streak!</p>
       </div>
     );
   }
@@ -39,12 +36,12 @@ export function HistoryPanel({ history }: HistoryPanelProps) {
             </span>
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            {day.tasks.map((t) => (
+            {day.tasks.map((title, j) => (
               <span
-                key={t.id}
+                key={j}
                 className="rounded-md bg-success/10 px-2 py-0.5 text-[11px] text-success"
               >
-                {t.title}
+                {title}
               </span>
             ))}
           </div>
